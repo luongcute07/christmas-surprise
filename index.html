@@ -17,18 +17,29 @@ body {
     overflow: hidden;
 }
 
-/* Gift box */
+/* Background Tree */
+#bgTree {
+    position: fixed;
+    bottom: -40px;
+    font-size: 650px;
+    opacity: 0.15;
+    z-index: 1;
+    display: none;
+}
+
+/* Gift */
 #giftBox {
     font-size: 300px;
     cursor: pointer;
     animation: shake 1s infinite;
+    z-index: 5;
 }
 
 @keyframes shake {
     0% { transform: rotate(0); }
-    25% { transform: rotate(5deg); }
-    50% { transform: rotate(-5deg); }
-    75% { transform: rotate(5deg); }
+    25% { transform: rotate(6deg); }
+    50% { transform: rotate(-6deg); }
+    75% { transform: rotate(6deg); }
     100% { transform: rotate(0); }
 }
 
@@ -37,43 +48,68 @@ body {
 /* Countdown */
 #countdown {
     position: absolute;
-    font-size: 6rem;
-    font-weight: bold;
-    animation: zoom 1s ease;
+    font-size: 10rem;        /* TO HƠN */
+    font-weight: 900;
+    color: gold;
+    text-shadow: 0 0 30px red, 0 0 60px gold;
+    animation: zoomShake 1s ease;
+    z-index: 20;
 }
 
-@keyframes zoom {
-    from { transform: scale(0.5); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+@keyframes zoomShake {
+    0% { transform: scale(0.3) rotate(0deg); opacity: 0; }
+    40% { transform: scale(1.4) rotate(2deg); opacity: 1; }
+    60% { transform: scale(1.3) rotate(-2deg); }
+    100% { transform: scale(1) rotate(0deg); }
 }
 
-/* Main content */
+@media (max-width: 768px) {
+    #countdown {
+        font-size: 6rem;
+    }
+}
+
+/* Content */
 #content {
     text-align: center;
-    z-index: 10;
+    z-index: 5;
+    font-size: 2.0rem;
 }
 
 h1 {
-    font-size: 3.5rem;
-    animation: glow 2s infinite alternate;
-}
-
-@keyframes glow {
-    from { text-shadow: 0 0 10px white; }
-    to { text-shadow: 0 0 30px gold; }
+    font-size: 3.2rem;
+    min-height: 80px;
+    text-shadow: 0 0 20px gold;
 }
 
 /* Santa */
 .santa {
     position: absolute;
-    bottom: 60px;
-    left: -200px;
+    left: -300px;
     font-size: 80px;
     animation: santaMove 10s linear infinite;
+    z-index: 6;
+}
+
+.santa1 {
+    bottom: 90px;
+    animation-duration: 10s;
+}
+
+.santa2 {
+    bottom: 160px;
+    animation-duration: 13s;
 }
 
 @keyframes santaMove {
-    to { left: 110%; }
+    to {
+        left: 120%;
+    }
+}
+@media (max-width: 768px) {
+    .santa {
+        font-size: 60px;
+    }
 }
 
 /* Snow */
@@ -81,6 +117,7 @@ h1 {
     position: absolute;
     top: -10px;
     animation: fall linear infinite;
+    z-index: 4;
 }
 
 @keyframes fall {
@@ -94,51 +131,8 @@ h1 {
     background: white;
     opacity: 0;
     pointer-events: none;
+    z-index: 10;
 }
-/* Responsive for mobile */
-@media (max-width: 768px) {
-    #bgTree {
-        font-size: 200px;
-        bottom: -20px;
-    }
-
-    h1 {
-        font-size: 2.2rem;
-    }
-
-    p {
-        font-size: 1rem;
-        padding: 0 15px;
-    }
-
-    #giftBox {
-        font-size: 80px;
-    }
-
-    #countdown {
-        font-size: 4.5rem;
-    }
-
-    .santa {
-        font-size: 60px;
-        bottom: 40px;
-    }
-}
-
-@media (max-width: 480px) {
-    h1 {
-        font-size: 1.8rem;
-    }
-
-    #bgTree {
-        font-size: 160px;
-    }
-
-    #giftBox {
-        font-size: 70px;
-    }
-}
-
 </style>
 </head>
 
@@ -150,21 +144,27 @@ h1 {
 
 <div id="flash"></div>
 
+<div id="bgTree">🎄</div>
+
 <div id="giftBox" onclick="startSurprise()">🎁</div>
 <div id="countdown" class="hidden"></div>
 
 <div id="content" class="hidden">
-    <h1 id="title"></h1>
+    <h1 id="typingText"></h1>
     <p>
         Chúc bạn một mùa Giáng Sinh an lành,<br>
         hạnh phúc và tràn đầy yêu thương ❤️
     </p>
 </div>
 
-<div class="santa hidden">🎅🛷</div>
+<div class="santa santa1 hidden">🎅🛷🦌🦌🦌</div>
+<div class="santa santa2 hidden">🎅🛷🦌🦌🦌</div>
+
 
 <script>
-const name = "Lượng"; // 👉 đổi tên tại đây
+const name = "Đinh Thu"; // 👉 đổi tên tại đây
+const text = `🎄 Merry Christmas ${name} 🎄`;
+let index = 0;
 let count = 3;
 
 function startSurprise() {
@@ -192,18 +192,30 @@ function openGift() {
     setTimeout(() => {
         flash.style.opacity = 0;
 
+        document.getElementById("bgTree").style.display = "block";
         document.getElementById("content").classList.remove("hidden");
-        document.querySelector(".santa").classList.remove("hidden");
-        document.getElementById("title").innerHTML =
-            `🎄 Merry Christmas ${name} 🎄`;
+        document.querySelectorAll(".santa").forEach(s =>
+    s.classList.remove("hidden")
+);
+
 
         document.getElementById("music").play();
         snowEffect();
+        typingEffect();
     }, 400);
 }
 
+function typingEffect() {
+    const el = document.getElementById("typingText");
+    if (index < text.length) {
+        el.innerHTML += text.charAt(index);
+        index++;
+        setTimeout(typingEffect, 100);
+    }
+}
+
 function snowEffect() {
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 90; i++) {
         const snow = document.createElement("div");
         snow.innerHTML = "❄";
         snow.className = "snow";
