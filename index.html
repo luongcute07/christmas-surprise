@@ -17,7 +17,7 @@ body {
     overflow: hidden;
 }
 
-/* Background Tree */
+/* Tree background */
 #bgTree {
     position: fixed;
     bottom: -40px;
@@ -34,7 +34,6 @@ body {
     animation: shake 1s infinite;
     z-index: 5;
 }
-
 @keyframes shake {
     0% { transform: rotate(0); }
     25% { transform: rotate(6deg); }
@@ -48,34 +47,28 @@ body {
 /* Countdown */
 #countdown {
     position: absolute;
-    font-size: 10rem;        /* TO HƠN */
+    font-size: 10rem;
     font-weight: 900;
     color: gold;
     text-shadow: 0 0 30px red, 0 0 60px gold;
     animation: zoomShake 1s ease;
     z-index: 20;
 }
-
 @keyframes zoomShake {
-    0% { transform: scale(0.3) rotate(0deg); opacity: 0; }
-    40% { transform: scale(1.4) rotate(2deg); opacity: 1; }
-    60% { transform: scale(1.3) rotate(-2deg); }
-    100% { transform: scale(1) rotate(0deg); }
+    0% { transform: scale(0.3); opacity: 0; }
+    40% { transform: scale(1.4); opacity: 1; }
+    100% { transform: scale(1); }
 }
-
 @media (max-width: 768px) {
-    #countdown {
-        font-size: 6rem;
-    }
+    #countdown { font-size: 6rem; }
 }
 
 /* Content */
 #content {
     text-align: center;
     z-index: 5;
-    font-size: 2.0rem;
+    font-size: 2rem;
 }
-
 h1 {
     font-size: 3.2rem;
     min-height: 80px;
@@ -87,30 +80,12 @@ h1 {
     position: absolute;
     left: -300px;
     font-size: 80px;
-    animation: santaMove 10s linear infinite;
+    animation: santaMove linear infinite;
     z-index: 6;
 }
-
-.santa1 {
-    bottom: 90px;
-    animation-duration: 10s;
-}
-
-.santa2 {
-    bottom: 160px;
-    animation-duration: 13s;
-}
-
-@keyframes santaMove {
-    to {
-        left: 120%;
-    }
-}
-@media (max-width: 768px) {
-    .santa {
-        font-size: 60px;
-    }
-}
+.santa1 { bottom: 90px; animation-duration: 10s; }
+.santa2 { bottom: 160px; animation-duration: 13s; }
+@keyframes santaMove { to { left: 120%; } }
 
 /* Snow */
 .snow {
@@ -119,10 +94,7 @@ h1 {
     animation: fall linear infinite;
     z-index: 4;
 }
-
-@keyframes fall {
-    to { transform: translateY(110vh); }
-}
+@keyframes fall { to { transform: translateY(110vh); } }
 
 /* Flash */
 #flash {
@@ -133,19 +105,80 @@ h1 {
     pointer-events: none;
     z-index: 10;
 }
+
+/* Fireworks */
+canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9;
+}
+/* iPhone 12 Pro Max */
+@media screen and (max-width: 430px) and (max-height: 932px) {
+
+  body {
+    padding: 12px;
+  }
+
+  /* 🎁 Gift box */
+  #giftBox {
+    font-size: 180px;
+  }
+
+  /* 🔢 Countdown */
+  #countdown {
+    font-size: 5.5rem;
+    text-shadow: 0 0 15px red, 0 0 30px gold;
+  }
+
+  /* 🎄 Background tree */
+  #bgTree {
+    font-size: 360px;
+    bottom: -20px;
+  }
+
+  /* 💌 Text content */
+  #content {
+    font-size: 1.4rem;
+    padding: 0 10px;
+  }
+
+  h1 {
+    font-size: 2.1rem;
+    min-height: 60px;
+  }
+
+  /* 🎅 Santa */
+  .santa {
+    font-size: 48px;
+  }
+
+  .santa1 {
+    bottom: 70px;
+  }
+
+  .santa2 {
+    bottom: 120px;
+  }
+
+  /* ❄ Snow */
+  .snow {
+    font-size: 14px;
+  }
+}
+
 </style>
 </head>
 
 <body>
 
-<audio id="music" loop>
-    <source src="christmas.mp3" type="audio/mpeg">
-</audio>
+<audio id="music" src="christmas.mp3" loop></audio>
+<audio id="boom" src="boom.mp3"></audio>
 
 <div id="flash"></div>
+<canvas id="fireworks"></canvas>
 
 <div id="bgTree">🎄</div>
-
 <div id="giftBox" onclick="startSurprise()">🎁</div>
 <div id="countdown" class="hidden"></div>
 
@@ -160,72 +193,102 @@ h1 {
 <div class="santa santa1 hidden">🎅🛷🦌🦌🦌</div>
 <div class="santa santa2 hidden">🎅🛷🦌🦌🦌</div>
 
-
 <script>
-const name = "Đinh Thu"; // 👉 đổi tên tại đây
+function getNameFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("name") || "You";
+}
+
+const name = decodeURIComponent(getNameFromURL());
 const text = `🎄 Merry Christmas ${name} 🎄`;
-let index = 0;
-let count = 3;
 
-function startSurprise() {
-    document.getElementById("giftBox").classList.add("hidden");
-    const cd = document.getElementById("countdown");
-    cd.classList.remove("hidden");
-    cd.innerText = count;
+let index = 0, count = 3;
 
-    const timer = setInterval(() => {
-        count--;
-        if (count > 0) {
-            cd.innerText = count;
-        } else {
-            clearInterval(timer);
-            cd.classList.add("hidden");
-            openGift();
-        }
-    }, 1000);
+/* Fireworks */
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+let particles = [];
+
+function firework() {
+  const x = Math.random()*canvas.width;
+  const y = Math.random()*canvas.height/2;
+  for(let i=0;i<80;i++){
+    particles.push({
+      x,y,
+      vx:(Math.random()-0.5)*6,
+      vy:(Math.random()-0.5)*6,
+      a:1,
+      c:`hsl(${Math.random()*360},100%,60%)`
+    });
+  }
 }
-
-function openGift() {
-    const flash = document.getElementById("flash");
-    flash.style.opacity = 1;
-
-    setTimeout(() => {
-        flash.style.opacity = 0;
-
-        document.getElementById("bgTree").style.display = "block";
-        document.getElementById("content").classList.remove("hidden");
-        document.querySelectorAll(".santa").forEach(s =>
-    s.classList.remove("hidden")
-);
-
-
-        document.getElementById("music").play();
-        snowEffect();
-        typingEffect();
-    }, 400);
+function animateFW(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach((p,i)=>{
+    p.x+=p.vx; p.y+=p.vy; p.a-=0.01;
+    ctx.globalAlpha=p.a;
+    ctx.fillStyle=p.c;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,3,0,Math.PI*2);
+    ctx.fill();
+    if(p.a<=0) particles.splice(i,1);
+  });
+  requestAnimationFrame(animateFW);
 }
+animateFW();
 
-function typingEffect() {
-    const el = document.getElementById("typingText");
-    if (index < text.length) {
-        el.innerHTML += text.charAt(index);
-        index++;
-        setTimeout(typingEffect, 100);
+/* Surprise */
+function startSurprise(){
+  giftBox.classList.add("hidden");
+  countdown.classList.remove("hidden");
+  countdown.innerText = count;
+
+  const timer = setInterval(()=>{
+    count--;
+    if(count>0) countdown.innerText = count;
+    else{
+      clearInterval(timer);
+      countdown.classList.add("hidden");
+      document.getElementById("boom").play();
+      openGift();
     }
+  },1000);
 }
 
-function snowEffect() {
-    for (let i = 0; i < 90; i++) {
-        const snow = document.createElement("div");
-        snow.innerHTML = "❄";
-        snow.className = "snow";
-        snow.style.left = Math.random() * 100 + "vw";
-        snow.style.fontSize = Math.random() * 14 + 10 + "px";
-        snow.style.animationDuration = Math.random() * 3 + 3 + "s";
-        document.body.appendChild(snow);
-    }
+function openGift(){
+  flash.style.opacity=1;
+  setTimeout(()=>{
+    flash.style.opacity=0;
+    bgTree.style.display="block";
+    content.classList.remove("hidden");
+    document.querySelectorAll(".santa").forEach(s=>s.classList.remove("hidden"));
+    music.play();
+    snow();
+    type();
+    for(let i=0;i<5;i++) setTimeout(firework,i*400);
+  },300);
+}
+
+function type(){
+  if(index<text.length){
+    typingText.innerHTML+=text.charAt(index++);
+    setTimeout(type,100);
+  }
+}
+
+function snow(){
+  for(let i=0;i<80;i++){
+    const s=document.createElement("div");
+    s.innerHTML="❄";
+    s.className="snow";
+    s.style.left=Math.random()*100+"vw";
+    s.style.fontSize=Math.random()*14+10+"px";
+    s.style.animationDuration=Math.random()*3+3+"s";
+    document.body.appendChild(s);
+  }
 }
 </script>
-
 </body>
 </html>
