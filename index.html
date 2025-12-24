@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta charset="UTF-8">
 <title>Christmas Surprise 🎄</title>
 
@@ -166,6 +167,11 @@ canvas {
     font-size: 14px;
   }
 }
+#typingText {
+  white-space: pre;
+  font-family: 'Segoe UI', monospace;
+  line-height: 1.6;
+}
 
 </style>
 </head>
@@ -184,10 +190,10 @@ canvas {
 
 <div id="content" class="hidden">
     <h1 id="typingText"></h1>
-    <p>
+    <!-- <p>
         Chúc bạn một mùa Giáng Sinh an lành,<br>
         hạnh phúc và tràn đầy yêu thương ❤️
-    </p>
+    </p> -->
 </div>
 
 <div class="santa santa1 hidden">🎅🛷🦌🦌🦌</div>
@@ -200,7 +206,16 @@ function getNameFromURL() {
 }
 
 const name = decodeURIComponent(getNameFromURL());
-const text = `🎄 Merry Christmas ${name} 🎄`;
+const heartText = [
+  "      Merry Christmas",
+  "   Chúc bạn luôn bình an",
+  " Chúc bạn luôn mỉm cười",
+  "  Và được yêu thương",
+  "   Nhiều hơn mỗi ngày",
+  `        ${name}`,
+  "            ❤️"
+];
+
 
 let index = 0, count = 3;
 
@@ -271,12 +286,24 @@ function openGift(){
   },300);
 }
 
-function type(){
-  if(index<text.length){
-    typingText.innerHTML+=text.charAt(index++);
-    setTimeout(type,100);
+let line = 0;
+let char = 0;
+
+function type() {
+  if (line < heartText.length) {
+    if (char < heartText[line].length) {
+      typingText.innerHTML += heartText[line].charAt(char);
+      char++;
+      setTimeout(type, 60);
+    } else {
+      typingText.innerHTML += "<br>";
+      char = 0;
+      line++;
+      setTimeout(type, 200);
+    }
   }
 }
+
 
 function snow(){
   for(let i=0;i<80;i++){
