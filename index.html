@@ -168,9 +168,24 @@ canvas {
   }
 }
 #typingText {
-  white-space: pre;
-  font-family: 'Segoe UI', monospace;
-  line-height: 1.6;
+  white-space: pre-wrap;          /* Cho phép xuống dòng */
+  word-break: break-word;         /* Không tràn ngang */
+  text-align: center;             /* Căn giữa */
+  max-width: 90vw;                /* Giới hạn chiều ngang */
+  margin: 0 auto;
+  line-height: 1.5;
+}
+@media screen and (max-width: 430px) {
+
+  #typingText {
+    font-size: 1.2rem;        /* Nhỏ hơn cho mobile */
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+  }
+
+  h1 {
+    font-size: 1.9rem;
+  }
 }
 
 </style>
